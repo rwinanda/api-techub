@@ -5,7 +5,7 @@ exports.userSignup = async (req, res, next) => {
         const email = req.body.email;
         console.log(email);
         const user = await Database.db.query('SELECT email FROM users WHERE email = $1', [email]);
-        console.log(user.rows.length);
+        console.log('row: ', user);
 
         if (user.rows.length > 0) {
             return res.status(409).json({
