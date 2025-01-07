@@ -7,6 +7,7 @@ const Database = require('./src/db/client');
 const productRoutes = require('./src/routes/products'); 
 const orderRoutes = require('./src/routes/orders');
 const userRoutes = require('./src/routes/users');
+const sessionLogin = require('./src/services/sessionAuth');
 
 // Handling database authentication
 async function authenticateDatabase() {
@@ -39,6 +40,9 @@ app.use((req, res, next) => {
     }
     next();
 });
+
+// Configurasion library session
+app.use(sessionLogin);
 
 // Route handle request
 app.use('/products', productRoutes);
