@@ -1,6 +1,7 @@
 const { body } = require('express-validator');
 const jwt = require('jsonwebtoken');
 
+// Validation for signup
 exports.signupValidation = [
     // requirement for signup
     body('email')
@@ -14,19 +15,38 @@ exports.signupValidation = [
         .withMessage('Name is required!'),
 ];
 
+// Middleware Auth
 exports.checkAuth = (req, res, next) => {
     try {
-        const token = req.headers.authorization.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_KEY);
-        console.log(decoded);
-        req.userData = decoded;
+        const authHeader = req.headers["cookie"];
+        console.log("Header auth = ", authHeader);
+        // Condition if there is no cookies in headers
+        if(!authHeader) return res.status(401).json({
+            status: 401,
+            message: "Please login first"
+        });
+        const cookie = authHeader.split('=')[1];
+        console.log("cookie check auth -> ", cookie)
+        jwt.verify(cookie, process.env.JWT_KEY);
         next();
     } catch (error) {
-        return res.status(401).json({
-            message: 'AUTH FAILED: Need Login First!',
-            status: 401,
-            error: error.message
-        });
+        if (error.name === "TokenExpiredError") {
+            return res.status(401).json({
+                status: 401,
+                message: "Session expired. Please login again.",
+            });
+        } else if (error.name === "JsonWebTokenError") {
+            return res.status(401).json({
+                status: 401,
+                message: "Invalid session. Please login again.",
+            });
+        } else {
+            return res.status(500).json({
+                status: 500,
+                message: "Internal Server Error",
+                error: error.message,
+            });
+        }
     }
 }
 
