@@ -7,7 +7,9 @@ const Database = require('./src/db/client');
 const productRoutes = require('./src/routes/products'); 
 const orderRoutes = require('./src/routes/orders');
 const userRoutes = require('./src/routes/users');
-const sessionLogin = require('./src/services/sessionAuth');
+const categoryRoutes = require('./src/routes/categories');
+// const sessionLogin = require('./src/services/sessionAuth');
+const cookieParser = require('cookie-parser');
 
 // Handling database authentication
 async function authenticateDatabase() {
@@ -42,12 +44,15 @@ app.use((req, res, next) => {
 });
 
 // Configurasion library session
-app.use(sessionLogin);
+// app.use(sessionLogin);
+
+app.use(cookieParser());
 
 // Route handle request
-app.use('/products', productRoutes);
-app.use('/orders', orderRoutes);
 app.use('/users', userRoutes);
+app.use('/orders', orderRoutes);
+app.use('/users', productRoutes);
+app.use('/users', categoryRoutes);
     
 // Customize error log
 app.use((req, res, next) => {
