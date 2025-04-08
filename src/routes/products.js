@@ -5,29 +5,18 @@ const authMiddleware = require('../middleware/auth');
 
 // Get Data Products
 router.get('/product', authMiddleware.checkAuth, productsController.getProducts);
-
 // Post Data Products
 router.post('/product', authMiddleware.checkAuth, productsController.addProducts);
 
-// Get Data by Id
-router.get('/:productId', (req, res, next) => {
-    const id = req.params.productId;
-    if (id === 'special') {
-        res.status(200).json({
-            message: `You discovered ID with ${id}`,
-            id: id
-        });
-    } else {
-        res.status(200).json({
-            message: 'You passed an ID'
-        });
-    }
-});
+// Get product by id
+router.get('/product/:productId', productsController.getProductById);
+router.get('/picture_product/:productId', productsController.getPictureById);
+
 
 // Edit product by Id
-router.patch('/:productId');
+// router.patch('/:productId');
 
-// Delete product by id
-router.delete('/:productId');
+// // Delete product by id
+// router.delete('/:productId');
 
 module.exports = router;
