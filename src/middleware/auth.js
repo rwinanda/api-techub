@@ -19,14 +19,14 @@ exports.signupValidation = [
 exports.checkAuth = (req, res, next) => {
     try {
         const authHeader = req.headers["cookie"];
-        console.log("Header auth = ", authHeader);
+
         // Condition if there is no cookies in headers
         if(!authHeader) return res.status(401).json({
             status: 401,
             message: "Please login first"
         });
+        
         const cookie = authHeader.split('=')[1];
-        console.log("cookie check auth -> ", cookie)
         jwt.verify(cookie, process.env.JWT_KEY);
         next();
     } catch (error) {
