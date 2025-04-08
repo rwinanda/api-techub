@@ -2,14 +2,21 @@ const express = require('express');
 const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const fileUpload = require('express-fileupload');
+require("dotenv").config();
 
 const Database = require('./src/db/client');  
+
+// Const for Routes
 const productRoutes = require('./src/routes/products'); 
 const orderRoutes = require('./src/routes/orders');
 const userRoutes = require('./src/routes/users');
 const categoryRoutes = require('./src/routes/categories');
-// const sessionLogin = require('./src/services/sessionAuth');
-const cookieParser = require('cookie-parser');
+const productSkuRoutes = require('./src/routes/product-sku');
+const productVariantRoutes = require('./src/routes/product-variants');
+const variantValueRoutes = require('./src/routes/variant-values');
+const productPictureRoutes = require('./src/routes/product-pictures');
 
 // Handling database authentication
 async function authenticateDatabase() {
@@ -43,16 +50,23 @@ app.use((req, res, next) => {
     next();
 });
 
-// Configurasion library session
-// app.use(sessionLogin);
+// Upload File
+app.use(fileUpload());
+// Serve upload files
+app.use("/uploads", express.static("uploads")); 
 
 app.use(cookieParser());
 
 // Route handle request
-app.use('/users', userRoutes);
 app.use('/orders', orderRoutes);
-app.use('/users', productRoutes);
-app.use('/users', categoryRoutes);
+
+// Route for user admin
+const routes = [
+    userRoutes, categoryRoutes, productRoutes, productSkuRoutes, productVariantRoutes, variantValueRoutes, productPictureRoutes
+];
+routes.forEach(route => {
+    app.use('/users', route);
+});
     
 // Customize error log
 app.use((req, res, next) => {
