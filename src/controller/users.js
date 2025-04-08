@@ -2,7 +2,7 @@ const Database = require("../db/client");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
-require("dotenv").config();
+// require("dotenv").config();
 
 // Validation for SIGNUP
 exports.validatorSignup = (req, res, next) => {
