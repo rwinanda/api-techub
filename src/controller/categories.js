@@ -10,15 +10,15 @@ exports.addCategory = async (req, res, next) => {
         );
     
         return res.status(201).json({
+            status: 201,
             message: 'Success created category',
-            data: category.rows[0],
-            status: 201
+            data: category.rows[0]
         });
 
     } catch (error) {
         return res.status(500).json({
-            message: 'Failed',
             status: 500,
+            message: 'Failed',
             error: error.message
         });
     }
@@ -28,7 +28,6 @@ exports.addCategory = async (req, res, next) => {
 exports.getCategory = async (req, res, next) => {
     try {
         const category = await Database.db.query("SELECT * FROM categories");
-        console.log(category.rows);
         return res.status(200).json({
             message: "Success get category",
             status: 200,
@@ -45,14 +44,44 @@ exports.getCategory = async (req, res, next) => {
 
 exports.getCategoryId = async(req, res, next) => {
     try {
-        const { category_id } = req.params.categoryId;
-        const category = await Database.db.query("SELECT * FROM categroies WHERE category_id = $1", [category_id]);
-        console.log(category);
+        const category_id  = req.params.categoryId;
+        const category = await Database.db.query(
+            "SELECT ct.category_id, ct.category_name, pr.name_product FROM categories ct LEFT JOIN products pr ON ct.category_id = pr.category_id WHERE ct.category_id = $1", [category_id]
+        );
+
+        if (category.rows.length < 1) {
+            return res.status(404).json({
+                status: 404,
+                message: "Category Id is not found"
+            });
+        }
+
+        const categoryProducts = {
+            category_id: category.rows[0].category_id,
+            category_name: category.rows[0].category_name,
+            products: []
+        }
+
+        const categoryMap = new Map();
+
+        for (let i = 0; i < category.rows.length; i++) {
+            categoryMap.set(i,{
+                product_name: category.rows[i].name_product
+            });
+        }
+
+        categoryProducts.products = Array.from(categoryMap.values())
+
+        return res.status(200).json({
+            status: 200,
+            message: 'Success to get category_id',
+            data: categoryProducts
+        });
 
     } catch (error) {
         return res.status(500).json({
-            message: 'Failed',
             status: 500,
+            message: 'Failed',
             error: error.message
         });   
     }

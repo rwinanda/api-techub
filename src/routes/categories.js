@@ -5,6 +5,8 @@ const authMiddleware = require('../middleware/auth');
 
 router.post('/category', authMiddleware.checkAuth, categoryController.addCategory);
 router.get('/category', categoryController.getCategory);
+
+// Get Category by id
 router.get('/category/:categoryId', categoryController.getCategoryId);
 
 
