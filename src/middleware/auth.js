@@ -18,18 +18,21 @@ exports.signupValidation = [
 // Middleware Auth
 exports.checkAuth = (req, res, next) => {
     try {
-        const authHeader = req.headers["cookie"];
+        // Get token from cookies SessionID
+        const token = req.cookies.SessionID
 
         // Condition if there is no cookies in headers
-        if(!authHeader) return res.status(401).json({
-            status: 401,
-            message: "Please login first"
-        });
-        
-        const cookie = authHeader.split('=')[1];
-        jwt.verify(cookie, process.env.JWT_KEY);
+        if(!token) {
+            console.log("cek 1")
+            return res.status(401).json({
+                status: 401,
+                message: "Please login first"
+            });
+        } 
+        jwt.verify(token, process.env.JWT_KEY);
         next();
     } catch (error) {
+        console.log("error coding")
         if (error.name === "TokenExpiredError") {
             return res.status(401).json({
                 status: 401,
