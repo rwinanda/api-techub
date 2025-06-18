@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const fileUpload = require('express-fileupload');
+const cors = require('cors');
 require("dotenv").config();
 
 const Database = require('./src/db/client');  
@@ -40,18 +41,15 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 // Handling CORS
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Origin', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    if (req.method === 'OPTIONS') {
-        res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
-        return res.status(200).json({});
-    }
-    next();
-});
+app.use(cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+}));
 
 // Upload File
-app.use(fileUpload());
+app.use(fileUpload({
+    createParentPath: true
+}));
 // Serve upload files
 app.use("/uploads", express.static("uploads")); 
 
