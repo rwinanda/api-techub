@@ -1,17 +1,101 @@
 const Database = require('../db/client');
 const fs = require('fs');
+const fsPromises = require('fs').promises
 const path = require('path');
+const { filesUploadImages } = require('../middleware/upload-file');
 
 // Upload Pictures
-exports.uploadPicturesProduct = async(req, res) => {
-    try {  
-        let image = req.files.image;
+
+/**
+ * Save or update product pictures.
+ * @param {string} mode - 'insert' or 'update'
+ */
+
+exports.uploadPictureProducts = async (productId, image, uploadedImages, mode = 'insert') => {
+    // if file uploads directory doesn't exist, create new file
+    const uploadDir = path.join(__dirname, "../", process.env.UPLOAD_DIR || "uploads");
+    if (!fs.existsSync(uploadDir)) {
+        await fsPromises.mkdir(uploadDir, { recursive: true });
+    }
+
+    // Only process keys that start with `image_`
+    const imageProduct = Object.entries(image).filter(([key]) => key.startsWith("image_"));
+    
+    // Loop each file for img
+    for (const [imageKey, img] of imageProduct) {
+        console.log("img => ", img);
+        console.log("imageKey => ", imageKey)
+        // 💥 Check if img and img.name exist
+        if (!img || !img.name) {
+            console.warn("Invalid image file detected, skipping...");
+            continue;
+        }
+
+        // Middleware for extansion image
+        filesUploadImages(img.name)
+
+        // Generate a unique filename to prevent overwriting
+        const fileExtension = path.extname(img.name); // .jpg
+        const baseName = path.basename(img.name, fileExtension); // iphone 15_
+        let counter = 1;
+
+        // upload file to path
+        let imageName = img.name;
+        let uploadPath = path.join(uploadDir, imageName);
+
+        // Check for duplicate file name and rename it
+        while (fs.existsSync(uploadPath)) {
+        imageName = `${baseName}_${counter}${fileExtension}`;
+        uploadPath = path.join(uploadDir, imageName);
+        counter++;
+        }
+
+        // Move the file (mv requires a callback function)
+        await new Promise((resolve, reject) => {
+        img.mv(uploadPath, (err) => {
+            // condition if upload failed
+            if (err) {
+            return reject(err);
+            }
+            resolve();
+        });
+        });
+
+        // Upload to database with condition insert or update
+        if(mode === 'insert'){
+            const insertPictureQuery = `INSERT INTO product_pictures (product_id, picture_url, image_key) VALUES ($1, $2, $3) RETURNING *;`;
+            await Database.db.query(insertPictureQuery, [productId, imageName, imageKey]);
+        } else if(mode === 'update') {
+            const updatePicturequery = `
+            UPDATE product_pictures SET picture_url = $1 WHERE product_id = $2 and image_key = $3 RETURNING *;
+            `
+            const picResult = await Database.db.query(updatePicturequery, [imageName, productId, imageKey]);
+
+            // Condition if want to add new pictures (optional)
+            if(picResult.rows.length === 0) {
+            await Database.db.query(`
+                INSERT INTO product_pictures (product_id, picture_url, image_key) VALUES ($1, $2, $3) RETURNING *;
+                `, [productId, imageName, imageKey])
+            }
+        }
+
+        // Push image name to array respon Images
+        uploadedImages.push({imageName, imageKey})
+    }
+}
+
+exports.uploadPicturesValues = async (filePics) => {
+    try {
+        // Check if image is exist
+        if(!filePics) {
+            return null; // Return null if no file is uploaded
+        }
+        let image = filePics
         let imageName = image.name
 
-        const { product_id } = req.body;
         const uploadDir = path.join(__dirname, "../", process.env.UPLOAD_DIR || "uploads");
-        
-        // if file uploads directory doesn't exist, create new file
+                
+        // if file uploads directory doesn't exist, create new folder
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
@@ -32,45 +116,31 @@ exports.uploadPicturesProduct = async(req, res) => {
         }
 
         // Move the file (mv requires a callback function)
-        image.mv(uploadPath, (err) => {
-            // condition if upload failed
-            if (err) {
-                return res.status(500).json({ 
-                    message: "File upload failed", 
-                    error: err.message 
-                });
-            }
+        await image.mv(uploadPath);
 
-            // Called Function insert picture to Database
-            insertIntoDatabase(product_id, imageName, res)
-        });
+        return imageName; // return the new filename
+
     } catch (error) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: error.message
-        });
+        console.error("Error uploading file:", error.message);
+        throw new Error("File upload failed");
     }
 }
 
-// Insert to picture to database
-const insertIntoDatabase = async(product_id, imageName, res) => {
+// Delete Pictures by id
+exports.deletePictures = async(res, req) => {
     try {
-        const insertQuery = `INSERT INTO product_pictures (product_id, picture_url) VALUES ($1, $2) RETURNING *;`;
-        const values = [product_id, imageName];
-        const result = await Database.db.query(insertQuery, values);
-        console.log(result)
+        const {pictureId} = req.params;
+        Database.db.query("DELETE FROM product_pictures WHERE picture_id = $1", [pictureId]);
 
-        return res.status(201).json({
-            status: 201,
-            message: "File Upload Successfully and store to database",
-            data: result.rows[0]
+        return res.status(200).json({
+            status: 200,
+            message: "Product Pictures has been deleted"
         });
-
-    } catch (dbError) {
+    } catch (error) {
         return res.status(500).json({
             status: 500,
-            message: "Database insertion failed",
-            error: dbError.message
+            message: "Failed",
+            error: error.message
         });
     }
 }
