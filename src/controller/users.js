@@ -110,13 +110,13 @@ exports.userLogin = async (req, res, next) => {
           },
           process.env.JWT_KEY,
           {
-            expiresIn: '2m'
+            expiresIn: '120m'
           }
         );
 
         // Option for cookies
         let options = {
-          maxAge: 4 * 60 * 1000, //4 min expires
+          maxAge: 60 * 60 * 1000, // 15 min expires
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax"
@@ -127,6 +127,7 @@ exports.userLogin = async (req, res, next) => {
           status: 200,
           userId: userData._id,
           name: userData.name,
+          token: token
         });
       }
       return res.status(401).json({
