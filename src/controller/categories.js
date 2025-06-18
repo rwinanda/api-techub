@@ -1,6 +1,7 @@
 const Database = require('../db/client');
 
-exports.addCategory = async (req, res, next) => {
+// Add Category Data
+exports.addCategory = async (req, res) => {
     try {
         const { category_name } = req.body;
         const created_at = new Date().toISOString();
@@ -25,7 +26,8 @@ exports.addCategory = async (req, res, next) => {
     
 }
 
-exports.getCategory = async (req, res, next) => {
+// Get All Category Data
+exports.getCategory = async (req, res) => {
     try {
         const category = await Database.db.query("SELECT * FROM categories");
         return res.status(200).json({
@@ -42,7 +44,8 @@ exports.getCategory = async (req, res, next) => {
     }
 }
 
-exports.getCategoryId = async(req, res, next) => {
+// Get Category Data by Id
+exports.getCategoryId = async(req, res) => {
     try {
         const category_id  = req.params.categoryId;
         const category = await Database.db.query(
@@ -82,6 +85,63 @@ exports.getCategoryId = async(req, res, next) => {
         return res.status(500).json({
             status: 500,
             message: 'Failed',
+            error: error.message
+        });   
+    }
+}
+
+// Update category by id
+exports.updateCategoryById = async(req, res) => {
+    try {
+        const {categoryId} = req.params;
+        const {category_name} = req.body;
+        const category = await Database.db.query("UPDATE categories SET category_name = $1 WHERE category_id = $2 RETURNING *", [category_name, categoryId]);
+
+        console.log(category.rows);
+
+        // if(category.rows.length === 0) {
+        //     return res.status(401).json({
+        //         status: 401,
+        //         message: `Categroy with id ${categoryId} is not found`
+        //     });
+        // }
+
+        return res.status(200).json({
+            status: 200,
+            message: `Category id ${categoryId} sucessfully update`,
+            data: category.rows
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 500,
+            message: "Internal server error",
+            error
+        })
+    }
+}
+
+// Delete Category by id
+exports.deleteCategory = async(req, res) => {
+    try {
+        const {categoryId} = req.params;
+        const category = await Database.db.query("DELETE FROM categories WHERE category_id = $1 RETURNING *", [categoryId]);
+
+        // Condition if category id is not found
+        if(category.rows.length === 0) {
+            return res.status(401).json({
+                status: 401,
+                message: "Category id is not found"
+            });
+        }
+        
+        return res.status(200).json({
+            status: 200,
+            message: `Category with ${categoryId} Successfully deleted!!!` 
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 500,
+            message: "Internal Server Error",
             error: error.message
         });   
     }
