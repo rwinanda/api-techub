@@ -1,6 +1,6 @@
-const Database = require("../db/client");
+import Database from "../db/client.js";
 
-exports.searchProduct = async(req, res) => {
+export const searchProduct = async(req, res) => {
     try {
         const { query } = req.query;
         // Query search by name product

@@ -1,12 +1,12 @@
-// const fileUpload = require('express-fileupload');
-const path = require('path');
+import app from "../../app.js";
+
 const MB = 20 * 1024 * 1024; // 20 MB
 
-exports.filesUploadImages = async(image, req, res) => {
-    // Allowed extension files
+
+export const uploadFilesImages = async (image,  res) => {
      // Validasi ekstensi
     const allowedExtensions = /jpeg|jpg|png/;
-    const extName = path.extname(image).toLowerCase();
+    const extName = app.extname(image).toLowerCase();
     if (!allowedExtensions.test(extName)) {
         return res.status(400).json({ message: "Only .jpg, .jpeg and .png allowed" });
     }
@@ -15,6 +15,4 @@ exports.filesUploadImages = async(image, req, res) => {
     if (image.size > MB) {
         return res.status(400).json({ message: "File must be less than 20MB" });
     }
-    
-    // next();
 }

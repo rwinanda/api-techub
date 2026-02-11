@@ -1,8 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const authMiddleware = require('../middleware/auth');
+import express from 'express';
+import AuthMiddleware from '../middleware/auth.js';
 
-// router.post('/variant_values', variantValueController.createVariantValues);
-router.get('/variant_values', authMiddleware.checkAuth);
+const variantValueRouter = express.Router();
 
-module.exports = router;
+variantValueRouter.get('/', AuthMiddleware.checkAuth);
+
+export default variantValueRouter;

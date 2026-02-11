@@ -1,17 +1,15 @@
-const Database = require('../db/client');
-const fs = require('fs');
-const fsPromises = require('fs').promises
-const path = require('path');
-const { filesUploadImages } = require('../middleware/upload-file');
+import path from '../../app.js';
+import Database from '../db/client.js';
+import fs from 'fs';
 
-// Upload Pictures
+import { promises as fsPromises } from 'fs';
 
 /**
  * Save or update product pictures.
  * @param {string} mode - 'insert' or 'update'
  */
 
-exports.uploadPictureProducts = async (productId, image, uploadedImages, mode = 'insert') => {
+export const uploadPictureProducts = async (productId, image, uploadedImages, mode = 'insert') => {
     // if file uploads directory doesn't exist, create new file
     const uploadDir = path.join(__dirname, "../", process.env.UPLOAD_DIR || "uploads");
     if (!fs.existsSync(uploadDir)) {
@@ -23,8 +21,6 @@ exports.uploadPictureProducts = async (productId, image, uploadedImages, mode = 
     
     // Loop each file for img
     for (const [imageKey, img] of imageProduct) {
-        console.log("img => ", img);
-        console.log("imageKey => ", imageKey)
         // 💥 Check if img and img.name exist
         if (!img || !img.name) {
             console.warn("Invalid image file detected, skipping...");
@@ -32,7 +28,7 @@ exports.uploadPictureProducts = async (productId, image, uploadedImages, mode = 
         }
 
         // Middleware for extansion image
-        filesUploadImages(img.name)
+        // filesUploadImages(img.name)
 
         // Generate a unique filename to prevent overwriting
         const fileExtension = path.extname(img.name); // .jpg
@@ -71,6 +67,8 @@ exports.uploadPictureProducts = async (productId, image, uploadedImages, mode = 
             `
             const picResult = await Database.db.query(updatePicturequery, [imageName, productId, imageKey]);
 
+            console.log("Pics 1")
+
             // Condition if want to add new pictures (optional)
             if(picResult.rows.length === 0) {
             await Database.db.query(`
@@ -84,7 +82,7 @@ exports.uploadPictureProducts = async (productId, image, uploadedImages, mode = 
     }
 }
 
-exports.uploadPicturesValues = async (filePics) => {
+export const uploadPicturesValues = async (filePics) => {
     try {
         // Check if image is exist
         if(!filePics) {
@@ -127,7 +125,7 @@ exports.uploadPicturesValues = async (filePics) => {
 }
 
 // Delete Pictures by id
-exports.deletePictures = async(res, req) => {
+export const deletePictures = async(res, req) => {
     try {
         const {pictureId} = req.params;
         Database.db.query("DELETE FROM product_pictures WHERE picture_id = $1", [pictureId]);

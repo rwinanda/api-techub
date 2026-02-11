@@ -1,11 +1,7 @@
-const express = require('express');
-const router = express.Router();
-const productPicturesController = require('../controller/product-pictures');
-// const uploadFileMiddleware = require('../middleware/upload-file');
-// const authMiddleware = require('../middleware/auth');
+import express from 'express';
+import { deletePictures } from '../controller/product-pictures.js';
 
-// router.post("/upload",  authMiddleware.checkAuth, uploadFileMiddleware.filesUploadImages, productPicturesController.uploadPicturesProduct);
-// router.put("/upload/update/:pictureId", productPicturesController.updatePictures);
-router.delete("/upload/delete/:pictureId", productPicturesController.deletePictures);
+const productPictureRouter = express.Router();
+productPictureRouter.delete("/delete/:pictureId", deletePictures);
 
-module.exports = router;
+export default productPictureRouter;

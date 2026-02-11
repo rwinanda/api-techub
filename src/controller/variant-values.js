@@ -1,7 +1,7 @@
-const Database = require('../db/client');
-const { uploadPicturesValues } = require('./product-pictures');
+import Database from '../db/client.js';
+import { uploadPicturesValues } from './product-pictures.js';
 
-exports.addVariantValues = async (variantId, value, created_at, updated_at, tempVar, respVarValue, files) => {
+export const addVariantValues = async (variantId, value, created_at, updated_at, tempVar, respVarValue, files) => {
     let tempVal = [];    // Looping for value_variant
     for(let i = 0; i < value.length; i++) {
         const item = value[i];
@@ -13,7 +13,6 @@ exports.addVariantValues = async (variantId, value, created_at, updated_at, temp
             value_name = item.value_name;
             const imageName = await uploadPicturesValues(pictureFile)
             picture_values = imageName
-            
         } else {
             value_name = item.value_name;
             picture_values = null;
@@ -33,32 +32,44 @@ exports.addVariantValues = async (variantId, value, created_at, updated_at, temp
     tempVal = []
 }
 
-exports.addVariantSKU = async (tempVar, sku_value, created_at, updated_at, respSkuValue) => {
+export const addVariantSKU = async (tempVar, sku_value, created_at, updated_at, respSkuValue) => {
     let index = 0;
-        // Step 3. Insert SKU
-        for(let i = 0; i < tempVar[0].length; i++){
-            for(let j = 0; j < tempVar[1].length; j++){
-                const { price, weight, stock, sku_name } = sku_value[index];
-                let value1 = tempVar[0][i]; // For value id 1
-                let value2 = tempVar[1][j]; // For Value id 2
 
-                // Insert to database
-                const skuQuery = "INSERT INTO product_sku (value_id_1, value_id_2, price, stock, weight, sku_name, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, to_timestamp($7,'YYYY-MM-DD\"T\"HH24:MI:SS.MSZ'), to_timestamp($8, 'YYYY-MM-DD\"T\"HH24:MI:SS.MSZ')) RETURNING *" 
-                const skuResult = await Database.db.query(skuQuery, [value1, value2, price, weight, stock, sku_name, created_at, updated_at]);
+    const skuQuery = `
+        INSERT INTO product_sku (
+            value_id_1, value_id_2, price, stock, weight, sku_name, created_at, updated_at
+        ) VALUES (
+            $1, $2, $3, $4, $5, $6, 
+            to_timestamp($7,'YYYY-MM-DD"T"HH24:MI:SS.MSZ'), 
+            to_timestamp($8, 'YYYY-MM-DD"T"HH24:MI:SS.MSZ')
+        ) RETURNING *
+    `;
 
-                respSkuValue.push(skuResult.rows[0]); // Save to array respon SKU Value
-                index++
-            }
+    for (let i = 0; i < tempVar[0].length; i++) {
+        const value1 = tempVar[0][i];
+
+        const loopLength = tempVar.length > 1 ? tempVar[1].length : 1;
+
+        for (let j = 0; j < loopLength; j++) {
+            const value2 = tempVar.length > 1 ? tempVar[1][j] : null;
+            const { price, weight, stock, sku_name } = sku_value[index];
+
+            const skuResult = await Database.db.query(skuQuery, [
+                value1, value2, price, stock, weight, sku_name, created_at, updated_at
+            ]);
+
+            respSkuValue.push(skuResult.rows[0]);
+            index++;
         }
-}
+    }
+};
 
-exports.editVariantValues = async(value, updated_at, respVarValue, image) => {
+
+export const editVariantValues = async(value, updated_at, respVarValue, image) => {
     for (let i = 0; i < value.length; i++) {
         const valueId = value[i].value_id;
         const valueName = value[i].value_name
         const pictureFile = image?.[`picture_${i}`];
-
-        // console.log("value id ", i, " => ", valueId);
 
         // Condition when update value name
         if(valueName){
@@ -86,7 +97,7 @@ exports.editVariantValues = async(value, updated_at, respVarValue, image) => {
     }
 }
 
-exports.editVariantSKU = async(sku_value, updated_at, respSkuValue) => {
+export const editVariantSKU = async(sku_value, updated_at, respSkuValue) => {
     for(let i = 0; i < sku_value.length; i++) {
         console.log("sku value => ", sku_value)
         const item = sku_value[i];

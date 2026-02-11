@@ -1,25 +1,28 @@
-const express = require('express');
-const router = express.Router();
-const productsController = require('../controller/products');
-const searchController = require('../controller/search');
-const authMiddleware = require('../middleware/auth');
+import express from "express";
+import AuthMiddleware from "../middleware/auth.js";
+import { deleteProducts, editProducts, getPictureById, getProductById, getProducts } from "../controller/products.js";
+import { addProduct } from "../controller/product.controller.js";
+
+const productRouter = express.Router();
 
 // Get Data Products
-router.get('/product', productsController.getProducts);
+productRouter.get('/', getProducts);
 // Post Data Products
-router.post('/product', authMiddleware.checkAuth, productsController.addProductsWithPicture);
+// productRouter.post('/', AuthMiddleware.checkAuth, addProductsWithPicture);
+productRouter.post('/', addProduct);
+
 
 // Get data product by id
-router.get('/product/:productId', productsController.getProductById);
-router.get('/picture_product/:productId', productsController.getPictureById);
+productRouter.get('/:productId', getProductById);
+productRouter.get('/picture_product/:productId', getPictureById);
 
 // Search product
-router.get('/productSearch', searchController.searchProduct);
+// productRouter.get('/productSearch', searchProduct);
 
 // Edit product by Id
-router.patch('/product/:productId', authMiddleware.checkAuth, productsController.editProducts);
+productRouter.patch('/:productId', AuthMiddleware.checkAuth, editProducts);
 
-// // Delete product by id
-router.delete('/product/:productId', authMiddleware.checkAuth, productsController.deleteProducts);
+// Delete product by id
+productRouter.delete('/:productId', AuthMiddleware.checkAuth, deleteProducts);
 
-module.exports = router;
+export default productRouter

@@ -1,9 +1,9 @@
-const express = require('express');
-const router = express.Router();
-const productSkuController = require('../controller/product-sku');
-const authMiddleware = require('../middleware/auth');
+import express from 'express';
+import AuthMiddleware from '../middleware/auth.js';
+import { createProductSku, getProductSku } from '../controller/product-sku.js';
+const productSkuRouter = express.Router();
 
-router.get('/product_sku', authMiddleware.checkAuth, productSkuController.getProductSku);
-router.post('/product_sku', authMiddleware.checkAuth, productSkuController.createProductSku);
+productSkuRouter.get('/', AuthMiddleware.checkAuth, getProductSku);
+productSkuRouter.post('/', AuthMiddleware.checkAuth, createProductSku);
 
-module.exports = router;
+export default productSkuRouter;

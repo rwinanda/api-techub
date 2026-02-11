@@ -1,9 +1,9 @@
-const http = require('http');
+import http from "http";
+import app from "./app.js"; // ✅ must include .js extension in ESM
+
 const port = 8000;
-
-const app = require('./app');
-
 const server = http.createServer(app);
 
-server.listen(port);
-
+server.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});

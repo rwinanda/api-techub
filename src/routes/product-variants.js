@@ -1,9 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const productVariantsController = require('../controller/product-variants');
-const authMiddleware = require('../middleware/auth');
+import express from 'express';
+import AuthMiddleware from '../middleware/auth.js';
+import { createProductVariants, getProductVariants } from '../controller/product-variants.js';
 
-router.post('/product_variants', authMiddleware.checkAuth, productVariantsController.createProductVariants);
-router.get('/product_variants', authMiddleware.checkAuth, productVariantsController.getProductVariants);
+const productVariantRouter = express.Router();
 
-module.exports = router;
+productVariantRouter.post('/', AuthMiddleware.checkAuth, createProductVariants);
+productVariantRouter.get('/', AuthMiddleware.checkAuth, getProductVariants);
+
+export default productVariantRouter;

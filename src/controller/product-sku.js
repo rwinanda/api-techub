@@ -1,7 +1,7 @@
-const Database = require('../db/client');
+import Database from "../db/client.js";
 
 // Create Product SKU
-exports.createProductSku = async(req, res) => {
+export const createProductSku = async(req, res) => {
     try {
         const { product_id, value_id_1, value_id_2, sku_name, price, stock, weight } = req.body;
         const createdAt = new Date().toISOString();
@@ -25,7 +25,7 @@ exports.createProductSku = async(req, res) => {
 }
 
 // Get All Product SKU
-exports.getProductSku = async(req, res) => {
+export const getProductSku = async(req, res) => {
     try {
         // console.log("Fetching all product_sku data...");
         const products = await Database.db.query(
@@ -47,7 +47,7 @@ exports.getProductSku = async(req, res) => {
 }
 
 // Get data product SKU by id
-exports.getProductSkuById = async (req, res) => {
+export const getProductSkuById = async (req, res) => {
     try {
         const query = `
         SELECT pr.name_product, ps.price as price_sku, ps.stock as stock_sku, vv.value

@@ -1,11 +1,10 @@
-const Database = require("../db/client");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const { validationResult } = require("express-validator");
-// require("dotenv").config();
+import Database from "../db/client.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import { validationResult } from "express-validator";
 
 // Validation for SIGNUP
-exports.validatorSignup = (req, res, next) => {
+export const validatorSignup = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -17,7 +16,7 @@ exports.validatorSignup = (req, res, next) => {
 };
 
 // Function SIGNUP
-exports.userSignup = async (req, res, next) => {
+export const userSignup = async (req, res) => {
   try {
     const { name, email, password, password_confirm } = req.body;
 
@@ -72,7 +71,7 @@ exports.userSignup = async (req, res, next) => {
 };
 
 // Function Login
-exports.userLogin = async (req, res, next) => {
+export const userLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -146,9 +145,8 @@ exports.userLogin = async (req, res, next) => {
 };
 
 // Function Logout
-exports.userLogout = async (req, res, next) => {
+export const userLogout = async (req, res) => {
   try {
-
     // If Logout Failed
     if (!req.cookies["SessionID"]) {
       return res.status(400).json({
@@ -179,7 +177,7 @@ exports.userLogout = async (req, res, next) => {
 }
 
 // Function Get All data users
-exports.getUserLogin = async (req, res, next) => {
+export const getUserLogin = async (req, res) => {
   try {
     const user = await Database.db.query(
       "SELECT * FROM users ORDER BY id ASC"

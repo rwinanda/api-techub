@@ -1,14 +1,13 @@
-const Database = require("../db/client");
-const { createProductVariants, editProductVariants } = require("./product-variants");
-const { uploadPictureProducts } = require("./product-pictures");
-// const MB = 20 * 1024 * 1024;
+import Database from "../db/client.js";
+import { uploadPictureProducts } from "./product-pictures.js";
+import { createProductVariants, editProductVariants } from "./product-variants.js";
 
-exports.addProductsWithPicture = async (req, res) => {
+export const addProductsWithPicture = async (req, res) => {
   try {
     // Get Primary JSON
     const parsedDataArray = JSON.parse(req.body.data);
 
-    if (!Array.isArray(parsedDataArray) || !parsedDataArray.length) {
+    if (!Array.isArray(parsedDataArray) || parsedDataArray.length <  1) {
       return res.status(400).json({
         status: 400,
         message: "Invalid data format: must be a non-empty array"
@@ -23,15 +22,13 @@ exports.addProductsWithPicture = async (req, res) => {
       stock, 
       price, 
       weight 
-    } =
-      parsedData;
+    } = parsedData;
+
+    console.log("Parsed Data => ", parsedData)
 
     const created_at = new Date().toISOString();
     const updated_at = created_at;
     const image = req.files;
-    console.log("image => ", image)
-    // const image = req.files;
-
 
     // Store all uploaded image names for response
     const uploadedImages = [];
@@ -49,12 +46,12 @@ exports.addProductsWithPicture = async (req, res) => {
     }
 
     // Condition if category is not inputed
-    if(!category_id || !name_product || !description || !category_id || !stock || !price || !weight ){
-      return res.status(400).json({
-        status: 400,
-        message: "You should fill the form body"
-      });
-    }
+    // if(!category_id || !name_product || !description || !category_id){
+    //   return res.status(400).json({
+    //     status: 400,
+    //     message: "You should fill the form body"
+    //   });
+    // }
 
     // Step 1: Insert product first to get product_id
     const products = await Database.db.query(
@@ -71,7 +68,8 @@ exports.addProductsWithPicture = async (req, res) => {
       ]
     );
 
-    const productId = products.rows[0].product_id; 
+    const productId = products.rows[0].product_id;
+    console.log("Product id => ", productId) 
 
     // Step 2 Upload Picture Products
     await uploadPictureProducts(productId, image, uploadedImages, 'insert')
@@ -116,14 +114,26 @@ exports.addProductsWithPicture = async (req, res) => {
 };
 
 // Get All Data Product
-exports.getProducts = async (req, res) => {
+export const getProducts = async (req, res) => {
   try {
-    const products = await Database.db.query("SELECT * FROM products");
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const products = await Database.db.query("SELECT * FROM products LIMIT $1 OFFSET $2", [
+      limit, offset
+    ]);
+
+    const pageProduts = await Database.db.query("SELECT COUNT(*) FROM products");
+    const total = parseInt(pageProduts.rows[0].count);
 
     return res.status(200).json({
       status: 200,
       message: "Get Product Data",
       data: products.rows,
+      pagination: {
+        totalPages: Math.ceil(total/limit)
+      }
     });
   } catch (err) {
     return res.status(500).json({
@@ -135,7 +145,7 @@ exports.getProducts = async (req, res) => {
 };
 
 // Get Data Product by id
-exports.getProductById = async (req, res) => {
+export const getProductById = async (req, res) => {
   try {
     const { productId } = req.params;
 
@@ -211,7 +221,7 @@ exports.getProductById = async (req, res) => {
 };
 
 // New Edit Product
-exports.editProducts = async (req, res) => {
+export const editProducts = async (req, res) => {
   try {
     
     const { productId } = req.params;
@@ -341,7 +351,7 @@ exports.editProducts = async (req, res) => {
 };
 
 // Delete Product
-exports.deleteProducts = async (req, res) => {
+export const deleteProducts = async (req, res) => {
   try {
     const { productId } = req.params;
     const product = await Database.db.query(
@@ -369,7 +379,7 @@ exports.deleteProducts = async (req, res) => {
 };
 
 // Get Picture by id
-exports.getPictureById = async (req, res) => {
+export const getPictureById = async (req, res) => {
   try {
     const { productId } = req.params;
 

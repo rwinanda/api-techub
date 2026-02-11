@@ -1,33 +1,29 @@
-const express = require('express');
+import dotenv from "dotenv";
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import express from 'express';
+import fileUpload from 'express-fileupload';
+import morgan from 'morgan';
+import cors from 'cors';
+import Database from './src/db/client.js';
+import apiRoutes from './src/routes/index.js';
+import path from "path";
+import { fileURLToPath } from "url";
+
+dotenv.config();
+
 const app = express();
-const morgan = require('morgan');
-const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
-const fileUpload = require('express-fileupload');
-const cors = require('cors');
-require("dotenv").config();
-
-const Database = require('./src/db/client');  
-
-// Const for Routes
-const productRoutes = require('./src/routes/products'); 
-const orderRoutes = require('./src/routes/orders');
-const userRoutes = require('./src/routes/users');
-const categoryRoutes = require('./src/routes/categories');
-const productSkuRoutes = require('./src/routes/product-sku');
-const productVariantRoutes = require('./src/routes/product-variants');
-const variantValueRoutes = require('./src/routes/variant-values');
-const productPictureRoutes = require('./src/routes/product-pictures');
 
 // Handling database authentication
 async function authenticateDatabase() {
-    try {
-        await Database.db.connect();
-        console.log('Database Connected');
-    } catch (err) {
-        console.error('Connection Error:', err.message);
-        process.exit(1);
-    }
+  try {
+    console.log('Starting database...');
+    await Database.query('SELECT 1');
+    console.log('Database connected');
+  } catch (err) {
+    console.error('Database connection failed:', err.message);
+    process.exit(1);
+  }
 }
 
 // Call authenticate when server is start
@@ -42,7 +38,7 @@ app.use(bodyParser.json());
 
 // Handling CORS
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: "http://localhost:8000",
     credentials: true,
 }));
 
@@ -55,31 +51,39 @@ app.use("/uploads", express.static("uploads"));
 
 app.use(cookieParser());
 
-// Route handle request
-app.use('/orders', orderRoutes);
-
-// Route for user admin
-const routes = [
-    userRoutes, categoryRoutes, productRoutes, productSkuRoutes, productVariantRoutes, variantValueRoutes, productPictureRoutes
-];
-routes.forEach(route => {
-    app.use('/users', route);
+// Route
+apiRoutes.forEach(r => {
+    app.use(r.path, r.route);
 });
-    
+
+// recreate __dirname (ESM)
+const __filename = fileURLToPath(import.meta.url);
+console.log(__filename)
+const __dirname = path.dirname(__filename);
+
+// 👇 expose upload_temp folder
+app.use(
+  "/upload_temp",
+  express.static(path.join(__dirname, "src/upload_temp"))
+);
+
+// app.use('/upload_temp', express.static('upload_temp'))
+
+
 // Customize error log
-app.use((req, res, next) => {
-    const error = new Error('Not Found');
-    error.status = 404;
-    next(error);
-});
+// app.use((req, res, next) => {
+//     const error = new Error('Not Found');
+//     error.status = 404;
+//     next(error);
+// });
 
-app.use((error, req, res, next) => {
-    res.status(error.status || 500);
-    res.json({
-        error: {
-            message: error.message
-        }
-    });
-});
+// app.use((error, req, res) => {
+//     res.status(error.status || 500);
+//     res.json({
+//         error: {
+//             message: error.message
+//         }
+//     });
+// });
 
-module.exports = app;
+export default app;
