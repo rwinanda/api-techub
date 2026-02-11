@@ -1,7 +1,7 @@
 import http from "http";
 import app from "./app.js"; // ✅ must include .js extension in ESM
 
-const port = 8000;
+const port = 4700;
 const server = http.createServer(app);
 
 server.listen(port, () => {

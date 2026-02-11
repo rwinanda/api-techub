@@ -38,7 +38,7 @@ app.use(bodyParser.json());
 
 // Handling CORS
 app.use(cors({
-    origin: "http://localhost:8000",
+    origin: "http://localhost:4700",
     credentials: true,
 }));
 

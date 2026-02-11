@@ -14,7 +14,7 @@ RUN npm ci --only=production
 COPY . .
 
 # Expose the port your app runs on
-EXPOSE 8000
+EXPOSE 4700
 
 # Start the application
 CMD ["node", "server.js"]
