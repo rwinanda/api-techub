@@ -10,21 +10,14 @@ export const addProduct = async (req, res, next) => {
     try {
         await client.query('BEGIN');
         
-        // Add Product
-        const product = await addProductService(req.body, client);
-        // Add Product SKU
-        const productSku = await addProductSkuService(product.id_product, req.body, client);
-
-        // JSON Picture 
+        // JSON
         const picsList = req.body.image_url;
-
-        // Add Picture
-        const picture = await addPictureProductService(product.id_product, picsList, client);
-
-        // JSON Body variant
         const variantList = req.body.product_variant;
-        
-        // Add Variant for Products
+
+        // Service Product
+        const product = await addProductService(req.body, client);
+        const productSku = await addProductSkuService(product.id_product, req.body, client);
+        const picture = await addPictureProductService(product.id_product, picsList, client);     
         const variant = await addProductVariantService(product.id_product, variantList, client);
 
         await client.query('COMMIT');

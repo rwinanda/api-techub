@@ -1,12 +1,12 @@
 import { insertProductVariantValue } from "../repositories/product-variant-value.repository.js";
 import { insertProductVariant } from "../repositories/product-variant.repository.js"
 
-// export const addProductVariantService = async (idProduct, variantName, client) => {
 export const addProductVariantService = async (idProduct, variantList, client) => {
     // Response for json
     const respVariant = []
     const respValue = []
     
+    // Add Variant for Products
     for (let i = 0;  i < variantList.length; i++) {
         const variant = variantList[i];
         const variantResult = await insertProductVariant({
