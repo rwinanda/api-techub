@@ -1,6 +1,5 @@
 import { pictureService } from "../services/picture.service.js";
 
-
 export const addPicture = async (req, res) => {
     const images = req.files.image;
 

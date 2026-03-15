@@ -1,20 +1,19 @@
 import express from "express";
 import AuthMiddleware from "../middleware/auth.js";
-import { deleteProducts, editProducts, getPictureById, getProductById, getProducts } from "../controller/products.js";
-import { addProduct } from "../controller/product.controller.js";
+import { deleteProducts, editProducts } from "../controller/products.js";
+import { addProduct, getProduct, getProductById } from "../controller/product.controller.js";
 
 const productRouter = express.Router();
 
-// Get Data Products
-productRouter.get('/', getProducts);
 // Post Data Products
 // productRouter.post('/', AuthMiddleware.checkAuth, addProductsWithPicture);
+productRouter.get('/', getProduct);
 productRouter.post('/', addProduct);
-
+productRouter.get('/:productId', getProductById);
 
 // Get data product by id
-productRouter.get('/:productId', getProductById);
-productRouter.get('/picture_product/:productId', getPictureById);
+// productRouter.get('/:productId', getProductById);
+// productRouter.get('/picture_product/:productId', getPictureById);
 
 // Search product
 // productRouter.get('/productSearch', searchProduct);

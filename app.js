@@ -58,7 +58,6 @@ apiRoutes.forEach(r => {
 
 // recreate __dirname (ESM)
 const __filename = fileURLToPath(import.meta.url);
-console.log(__filename)
 const __dirname = path.dirname(__filename);
 
 // 👇 expose upload_temp folder

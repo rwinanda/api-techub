@@ -1,5 +1,6 @@
 import { insertProductVariantValue } from "../repositories/product-variant-value.repository.js";
 import { insertProductVariant } from "../repositories/product-variant.repository.js"
+import { addProductSkuService } from "./product-sku.service.js";
 
 export const addProductVariantService = async (idProduct, variantList, client) => {
     // Response for json
@@ -18,13 +19,19 @@ export const addProductVariantService = async (idProduct, variantList, client) =
         // Add Variant Value for Products
         for (let j = 0; j < variantList[i].value.length; j++) {
             const values = variantList[i].value[j];
-            const valuesResult = await insertProductVariantValue({
+            await insertProductVariantValue({
                     id_variant: variantResult.id_variant,
                     value_name: values.value_name
                 },
                 client
             )
-            respValue.push(valuesResult)
+
+            // Add SKU Value
+            // const skuValue = await addProductSkuService({
+            //     idProduct: idProduct,
+                
+            // })
+            // respValue.push(valuesResult);
         }
     }
     

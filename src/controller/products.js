@@ -86,7 +86,7 @@ export const addProductsWithPicture = async (req, res) => {
       req, 
       created_at, 
       updated_at
-    )
+    );
 
     // Respon for Products and Pictures
     const productPics = {

@@ -2,10 +2,10 @@ import Database from "../db/client.js"
 import { addPictureProductService } from "../services/product-picture.service.js";
 import { addProductSkuService } from "../services/product-sku.service.js";
 import { addProductVariantService } from "../services/product-variant.service.js";
-import { addProductService } from "../services/products.service.js";
+import { addProductService, getProductByIdService, getProductService } from "../services/products.service.js";
 
 export const addProduct = async (req, res, next) => {
-    const client = await Database.connect()
+    const client = await Database.connect();
 
     try {
         await client.query('BEGIN');
@@ -38,7 +38,36 @@ export const addProduct = async (req, res, next) => {
         await client.query('ROLLBACK');
         next(error);
     } finally {
-        client.release()
+        client.release();
     }
 }
 
+export const getProduct = async (req, res, next) => {
+    try {
+        const productList = await getProductService(req.query);
+
+        return res.status(200).json({
+            status: 200,
+            data: {
+                data: productList,
+                pagination: productList.totalPages
+            }
+        })
+    } catch (error) {
+        next(error);
+    } 
+}
+
+export const getProductById = async (req, res, next) => {
+    try {
+        const productDetail = await getProductByIdService(req.params);
+        console.log("product detail :", productDetail)
+
+        return res.status(200).json({
+            status: 200,
+            data: productDetail
+        })
+    } catch (error) {
+        next(error)
+    }
+}
