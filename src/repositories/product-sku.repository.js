@@ -7,4 +7,25 @@ export const insertProductSku = async (data, client) => {
 
     const result = await client.query(skuQuery, values);
     return result.rows[0]
-}   
+}
+
+export const updateProductSkuById = async (idProduct, fields, client) => {
+    const keys = Object.keys(fields);
+    const values = Object.values(fields);
+
+    const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
+    values.push(idProduct);
+    
+    const skuQuery = `UPDATE product_skus 
+        SET ${setClause}, updated_at = NOW() 
+        WHERE id_product = $${values.length}`;
+
+    const result = await client.query(skuQuery, values);
+    return result.rows[0];
+}
+
+export const deleteProductSkuById = async (idProduct, client) => {
+    const query = `DELETE FROM product_skus WHERE id_product = $1` ;
+    
+    await client.query(query, [idProduct]);
+}
