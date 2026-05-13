@@ -11,6 +11,29 @@ export const insertProduct = async (data, client) => {
     return result.rows[0]
 }
 
+export const updateProductById = async (idProduct, fields, client) => {
+    const keys = Object.keys(fields);
+    const values = Object.values(fields);
+    
+    const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
+    values.push(idProduct);
+
+    const productQuery = `UPDATE products 
+        SET ${setClause}, updated_at = NOW() 
+        WHERE id_product = $${values.length} 
+        RETURNING id_product, name_product`;
+
+    const result = await client.query(productQuery, values);
+    return result.rows[0];
+}
+
+export const deleteProduct = async (idProduct, client) => {
+    const query = `DELETE FROM products WHERE product_id = $1`;
+
+    const result = await client.query(query, [idProduct]);
+    return result.rows[0];
+}
+
 export const viewProduct = async (limit, offset) => {
     const client = await Database.connect();
 
@@ -22,7 +45,6 @@ export const pageProduct = async () => {
     const client = await Database.connect();
 
     const pageProductQuery = await client.query("SELECT COUNT(*) FROM products");
-    console.log("total : ", pageProductQuery.rows[0].count)
     const totalPages = parseInt(pageProductQuery.rows[0].count);
 
     return totalPages;
@@ -33,19 +55,40 @@ export const viewProductById = async (productId) => {
 
     const products = `
     SELECT 
-    pr.id_product, pr.name_product, pr.description, pr.is_active, ps.sku,
-    pp.picture_url, pp.is_primary,
-    ps.price, ps.stock, ps.weight, ps.is_active, pv.id_variant, pv.variant_name, 
-    vv.id_value, vv.name_value 
+        pr.id_product, pr.name_product, pr.description, pr.is_active,
+        
+        -- Aggregate pictures jadi array
+        json_agg(DISTINCT jsonb_build_object(
+            'picture_url', pp.picture_url,
+            'is_primary', pp.is_primary
+        )) AS pictures,
+        
+        -- Aggregate SKUs
+        json_agg(DISTINCT jsonb_build_object(
+            'sku', ps.sku,
+            'price', ps.price,
+            'stock', ps.stock,
+            'weight', ps.weight,
+            'is_active', ps.is_active
+        )) AS skus,
+
+        -- Aggregate variants beserta values-nya
+        json_agg(DISTINCT jsonb_build_object(
+            'id_variant', pv.id_variant,
+            'variant_name', pv.variant_name,
+            'id_value', vv.id_value,
+            'name_value', vv.name_value
+        )) AS variants
+
     FROM products pr
     LEFT JOIN product_skus ps ON pr.id_product = ps.id_product
-    LEFT JOIN product_pictures pp on pr.id_product = pp.id_product
+    LEFT JOIN product_pictures pp ON pr.id_product = pp.id_product
     LEFT JOIN product_variants pv ON pr.id_product = pv.id_product
     LEFT JOIN variant_values vv ON pv.id_variant = vv.id_variant
     WHERE pr.id_product = $1
+    GROUP BY pr.id_product, pr.name_product, pr.description, pr.is_active
     `;
     
     const result = await client.query(products, [productId]);
-    console.log("result : ", result.rows[0])
     return result.rows[0];
 }
