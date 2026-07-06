@@ -1,14 +1,13 @@
 import express from 'express';
 import AuthMiddleware from '../middleware/auth.js';
-import { userLogin, userLogout, userSignup, validatorSignup } from '../controller/users.js';
+import { userLogin, userLogout, userRegist, validatorSignup } from '../controller/user.controller.js';
 
-// const userController = require('../controller/users');
 const userRouter = express.Router();
 
-userRouter.post('/signup', AuthMiddleware.signupValidation, validatorSignup, userSignup);
+userRouter.post('/signup', AuthMiddleware.signupValidation, validatorSignup, userRegist);
 userRouter.post('/login', userLogin);
-userRouter.post('/logout', userLogout);
+userRouter.post('/logout', AuthMiddleware.checkAuth, userLogout);
 
-userRouter.get('/check-auth', AuthMiddleware.checkAuth);
+// userRouter.get('/check-auth', AuthMiddleware.checkAuth);
 
 export default userRouter;
