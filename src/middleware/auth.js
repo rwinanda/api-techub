@@ -1,5 +1,6 @@
 import { body } from "express-validator";
 import jwt from "jsonwebtoken";
+import { AuthorizationError } from "../utils/error.js";
 
 class AuthMiddleware {
   // ✅ Validation for signup
@@ -11,38 +12,42 @@ class AuthMiddleware {
         body("name").notEmpty().withMessage("Name is required!"),
     ];
 
-  // ✅ Check Auth Middleware
+    // ✅ Check Auth Middleware - pass as reference
     static checkAuth(req, res, next) {
         try {
             const token = req.cookies.SessionID;
 
-            if (!token) {
-                return res.status(401).json({
-                status: 401,
-                message: "Please login first",
-                });
-            }
+            if (!token) throw new AuthorizationError("Please login first", "01");
 
-            jwt.verify(token, process.env.JWT_KEY);
+            const decoded = jwt.verify(token, process.env.JWT_KEY);
+            req.user = decoded;
+
             next();
         } catch (error) {
             if (error.name === "TokenExpiredError") {
-                return res.status(401).json({
-                status: 401,
-                message: "Session expired. Please login again.",
-            });
-            } else if (error.name === "JsonWebTokenError") {
-            return res.status(401).json({
-                status: 401,
-                message: "Invalid session. Please login again.",
-            });
-            } else {
-                return res.status(500).json({
-                status: 500,
-                message: "Internal Server Error",
-                error: error.message,
-                });
+                return next(new AuthorizationError("Session expired. Please login again.", "02"));
             }
+            if (error.name === "JsonWebTokenError") {
+                return next(new AuthorizationError("Invalid session. Please login again.", "03"));
+            }
+            return next(error);
+        }
+    }
+
+    // Check Role users, ADMIN = 0 & CUSTOMER = 1
+    static checkRole(...allowedRoles) {
+        return (req, res, next) => {
+            try {
+            const userRole = req.user.role;
+            
+            if (!allowedRoles.includes(userRole)) {
+                return next(new AuthorizationError('You are not authorized to access this resource', '04'));
+            }
+
+            next();
+        } catch (error) {
+            return next(error);
+        }
         }
     }
 }
