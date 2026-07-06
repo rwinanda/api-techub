@@ -51,9 +51,21 @@ app.use("/uploads", express.static("uploads"));
 
 app.use(cookieParser());
 
-// Route
+// Routes
 apiRoutes.forEach(r => {
     app.use(r.path, r.route);
+});
+
+// Place this after all routes
+app.use((error, req, res, next) => { // eslint-disable-line no-unused-vars
+    const status = error.status || error.statusCode || 500;
+    return res.status(status).json({
+        status: status,
+        statusMessage: error.message || 'Internal server error',
+        result: {
+          errorCode: error.errorCode || '00'
+        }
+    });
 });
 
 // recreate __dirname (ESM)
@@ -65,24 +77,5 @@ app.use(
   "/upload_temp",
   express.static(path.join(__dirname, "src/upload_temp"))
 );
-
-// app.use('/upload_temp', express.static('upload_temp'))
-
-
-// Customize error log
-// app.use((req, res, next) => {
-//     const error = new Error('Not Found');
-//     error.status = 404;
-//     next(error);
-// });
-
-// app.use((error, req, res) => {
-//     res.status(error.status || 500);
-//     res.json({
-//         error: {
-//             message: error.message
-//         }
-//     });
-// });
 
 export default app;
