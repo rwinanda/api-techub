@@ -3,3 +3,8 @@ export const insertProductVariant = async (data, client) => {
 
     return variantQuery.rows[0];
 }
+
+export const deleteVariantsByProductId = async (idProduct, client) => {
+    const query = `DELETE FROM product_variants WHERE id_product = $1`;
+    await client.query(query, [idProduct]);
+}

@@ -3,6 +3,6 @@ export const insertProductVariantValue = async (data, client) => {
             id_variant, name_value, created_at, updated_at
         ) VALUES (
             $1, $2, NOW(), NOW()
-        ) RETURNING id_value`, [data.id_variant, data.value_name]);
+        ) RETURNING id_value, name_value`, [data.id_variant, data.value_name]);
     return varValueQuery.rows[0]
 }

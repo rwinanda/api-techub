@@ -1,4 +1,4 @@
 
 export const insertPictureValue = async (data, client) => {
-    const pictureValueQuery = await client.query("");
+    // const pictureValueQuery = await client.query("");
 }

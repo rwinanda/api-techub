@@ -1,4 +1,5 @@
 import Database from "../db/client.js"
+import { deleteProduct } from "../repositories/product.repository.js";
 import { addPictureProductService, updatePictureProductService } from "../services/product-picture.service.js";
 import { addProductSkuService, updateProductSkuService } from "../services/product-sku.service.js";
 import { addProductVariantService, updateProductVariantService } from "../services/product-variant.service.js";
@@ -152,6 +153,31 @@ export const updateProduct = async (req, res, next) => {
     }
 }
 
+export const deleteProductByID = async (req, res, next) => {
+    const client = await Database.connect();
+
+    try {
+        await client.query('BEGIN');
+        const { productId } = req.params;
+
+        if (!productId) throw new ValidationError('productId is required', '02');
+
+        const products = await deleteProduct(productId, client);
+
+        if (!products) throw new NotFoundError('Product not found', "01");
+        
+        await client.query('COMMIT');
+
+        return res.status(200).json({
+            status: 200,
+            message: 'Product deleted succesfully',
+            errorCode: "00",
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 export const getProduct = async (req, res, next) => {
     try {
         const productList = await getProductService(req.query);
@@ -192,30 +218,5 @@ export const getProductById = async (req, res, next) => {
         })
     } catch (error) {
         next(error)
-    }
-}
-
-export const deleteProducts = async (req, res, next) => {
-    const client = await Database.connect();
-
-    try {
-        await client.query('BEGIN');
-        const { productId } = req.params;
-
-        const products = await deleteProducts(productId, client);
-
-        if (!products) {
-                return res.status(404).json({
-                status: 404,
-                message: "Product is not found",
-            });
-        }
-
-        return res.status(200).json({
-            status: 200,
-            message: 'Product deleted succesfully'
-        });
-    } catch (error) {
-        next(error);
     }
 }

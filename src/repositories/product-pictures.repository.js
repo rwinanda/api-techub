@@ -7,3 +7,8 @@ export const insertPictureProduct = async (data, client) => {
 
     return picQuery.rows[0]
 }
+
+export const deletePicturesByProductId = async (idProduct, client) => {
+    const query = `DELETE FROM product_pictures WHERE id_product = $1`;
+    await client.query(query, [idProduct]);
+}

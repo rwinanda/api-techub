@@ -29,3 +29,11 @@ export const deleteProductSkuById = async (idProduct, client) => {
     
     await client.query(query, [idProduct]);
 }
+
+export const getProductSkuById = async (idProductSku, client) => {
+    const query = `SELECT id_product_sku, id_product, sku, price, stock, sku_image_url, weight, is_active 
+        FROM product_skus 
+        WHERE id_product_sku = $1`;
+    const result = await client.query(query, [idProductSku]);
+    return result.rows[0] || null;
+}

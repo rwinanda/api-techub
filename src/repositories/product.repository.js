@@ -8,7 +8,7 @@ export const insertProduct = async (data, client) => {
     ]
     
     const result = await client.query(productsQuery, values)
-    return result.rows[0]
+    return result.rows[0];
 }
 
 export const updateProductById = async (idProduct, fields, client) => {
@@ -28,7 +28,7 @@ export const updateProductById = async (idProduct, fields, client) => {
 }
 
 export const deleteProduct = async (idProduct, client) => {
-    const query = `DELETE FROM products WHERE product_id = $1`;
+    const query = `DELETE FROM products WHERE id_product = $1 RETURNING *`;
 
     const result = await client.query(query, [idProduct]);
     return result.rows[0];
