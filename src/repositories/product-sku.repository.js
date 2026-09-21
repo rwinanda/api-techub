@@ -24,6 +24,18 @@ export const updateProductSkuById = async (idProduct, fields, client) => {
     return result.rows[0];
 }
 
+export const reduceProductSkuStock = async (idProductSku, quantity, client) => {
+    const query = `UPDATE product_skus 
+    SET stock = stock - $1, updated_at = NOW()
+    WHERE id_product_sku = $2
+    RETURNING id_product_sku, stock
+    `;
+
+    const result = await client.query(query, [quantity, idProductSku]);
+    console.log("result reduce product => ", result.rows[0])
+    return result.rows[0];
+}
+
 export const deleteProductSkuById = async (idProduct, client) => {
     const query = `DELETE FROM product_skus WHERE id_product = $1` ;
     
