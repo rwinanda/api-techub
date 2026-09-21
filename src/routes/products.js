@@ -2,6 +2,7 @@ import express from "express";
 import AuthMiddleware from "../middleware/auth.js";
 import { addProduct, deleteProductByID, getProduct, getProductById, updateProduct } from "../controller/product.controller.js";
 import { ROLES } from "../utils/constants.js";
+import { addReview, getProductReviews } from "../controller/review.controller.js";
 
 const productRouter = express.Router();
 
@@ -13,5 +14,9 @@ productRouter.patch('/:productId', AuthMiddleware.checkAuth, AuthMiddleware.chec
 
 // Delete product by id
 productRouter.delete('/:productId', AuthMiddleware.checkAuth, AuthMiddleware.checkRole(ROLES.ADMIN), deleteProductByID);
+
+// Add review for product
+productRouter.post('/products/:productId/review', AuthMiddleware.checkAuth, AuthMiddleware.checkRole(ROLES.CUSTOMER), addReview);
+productRouter.get('/products/:productId/review', AuthMiddleware.checkAuth, getProductReviews);
 
 export default productRouter

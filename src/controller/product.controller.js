@@ -179,8 +179,31 @@ export const deleteProductByID = async (req, res, next) => {
 }
 
 export const getProduct = async (req, res, next) => {
+    const client = await Database.connect();
+
     try {
-        const productList = await getProductService(req.query);
+        const {
+            page = 1, 
+            limit = 10,
+            search,
+            id_category,
+            min_price,
+            max_price,
+            is_active
+        } = req.query;
+
+        const parsedPage = parseInt(page) || 1 
+        const parsedLimit = parseInt(limit) || 10 // 10
+
+        const filters = {
+            ...(search && { search }),
+            ...(id_category && { id_category }),
+            ...(min_price && { min_price }),
+            ...(max_price && { max_price }),
+            ...(is_active !== undefined && { is_active })
+        }
+
+        const productList = await getProductService(filters, parsedPage, parsedLimit, client);
 
         if (!productList) {
             return res.status(404).json({
@@ -192,8 +215,13 @@ export const getProduct = async (req, res, next) => {
         return res.status(200).json({
             status: 200,
             data: {
-                data: productList,
-                pagination: productList.totalPages
+                data: productList.products,
+                pagination: {
+                    page: parsedPage,
+                    limit: parsedLimit,
+                    total_data: productList.total_data,
+                    total_pages: Math.ceil(productList.total_data / parsedLimit)
+                }
             }
         })
     } catch (error) {

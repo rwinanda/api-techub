@@ -37,16 +37,43 @@ export const updateProductService = async (idProduct, payload, client) => {
     return updateProductById(idProduct, fields, client);
 }
 
-export const getProductService = async (queryParam) => {
-    const page = parseInt(queryParam.page) || 1 
-    const limit = parseInt(queryParam.limit) || 10 // 10
+export const getProductService = async (filters, page, limit, client) => {
+    // Validate page & limit
+    if (isNaN(page) || page < 1) {
+        throw new ValidationError('Page must be a positive number', '01');
+    }
+
+    if (isNaN(limit) || limit < 1) {
+        throw new ValidationError('Limit must be a positive number', '02');
+    }
+
+    // Validate price range
+    if (filters.min_price && filters.max_price && filters.min_price > filters.max_price) {
+        throw new ValidationError('min_price cannot be greater than max_price', 'INVALID_PRICE_RANGE');
+    }
+
     const offset = (page - 1) * limit // 0
 
-    const products = await viewProduct(limit, offset);
-    const totalPages = await pageProduct();
+    const [products, totalData] = await Promise.all([
+        viewProduct(filters, limit, offset, client),
+        pageProduct(filters, client)
+    ]);
+
+    // Format response data
+    const formattedProducts = products.map(product => ({
+        id_product: product.id_product,
+        name_product: product.name_product,
+        picture_url: product.picture_url,
+        product_price: parseInt(product.product_price) || 0,
+        // max_price: parseInt(product.max_price) || 0,
+        avg_rating: parseFloat(product.avg_rating) || 0,
+        total_reviews: parseInt(product.total_reviews) || 0,
+        total_sold: parseInt(product.total_sold) || 0
+    }))
+
 
     return {
-        products, totalPages
+        products: formattedProducts, total_data: parseInt(totalData)
     }
 }
 
