@@ -66,6 +66,28 @@ export const getCartItemByIdAndCartId = async (idCartItem, idCart, client) => {
     return result.rows[0];
 }
 
+// Check cart based on id_cart_item and id_user
+export const getCartItemByCartItemIds = async (idCartItem, idUser, client) => {
+    const query = `
+        SELECT 
+            ci.id_cart_item,
+            ci.id_product_sku,
+            ci.quantity,
+            p.name_product,
+            ps.price,
+            ps.stock
+        FROM cart_items ci
+        JOIN carts c ON ci.id_cart = c.id_cart
+        JOIN product_skus ps ON ci.id_product_sku = ps.id_product_sku
+        JOIN products p ON ps.id_product = p.id_product
+        WHERE ci.id_cart_item = ANY($2::bigint[])
+        AND c.id_user = $1::bigint
+    `;
+
+    const result =  await client.query(query, [idUser, idCartItem]);
+    return result.rows;
+}
+
 export const deleteCartItemByUser = async (id_cart_item, client) => {
     const query = `DELETE FROM cart_items WHERE id_cart_item = $1 RETURNING id_cart_item`;
 

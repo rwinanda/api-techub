@@ -86,3 +86,23 @@ export const deleteCartByUserIdService = async (client, idUser, id_cart_item) =>
     // Delete Item in Cart
     await deleteCartItemByUser(cartItem.id_cart_item, client);
 }
+
+export const deleteCartItemByIds = async (idUser, productSkuIds, client) => {
+    console.log("Product sku ids => ", productSkuIds)
+    console.log(`id user => ${idUser}`);
+
+    const placeHolders = productSkuIds.map((_, i) => `$${i + 2}`).join(', ') ;
+
+    console.log("Placeholders => ", placeHolders)
+
+    const query = `
+        DELETE FROM cart_items
+        WHERE id_product_sku IN (${placeHolders})
+        AND id_cart IN (
+            SELECT id_cart FROM carts WHERE id_user = $1
+        )
+    `;
+    
+    await client.query(query, [idUser, ...productSkuIds]);
+    console.log("4. Cart items deleted successfully");
+}
